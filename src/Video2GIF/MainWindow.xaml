@@ -266,9 +266,9 @@
                                       Style="{StaticResource ModernComboBox}" />
                         </StackPanel>
 
-                        <!-- 抖动算法 -->
+                        <!-- 色彩处理 -->
                         <StackPanel Margin="0,0,0,16">
-                            <TextBlock Text="抖动算法" Style="{StaticResource FieldLabel}" />
+                            <TextBlock Text="色彩处理" Style="{StaticResource FieldLabel}" />
                             <ComboBox ItemsSource="{Binding DitherOptions}"
                                       SelectedValue="{Binding Settings.DitherAlgorithm}"
                                       SelectedValuePath="Value"
