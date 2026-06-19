@@ -11,7 +11,7 @@ using Video2GIF.Services;
 namespace Video2GIF.ViewModels;
 
 /// <summary>
-/// 主窗口 ViewModel，管理所有 UI 交互逻辑
+/// 主窗口 ViewModel，管理页面切换及单个转换逻辑
 /// </summary>
 public class MainViewModel : INotifyPropertyChanged
 {
@@ -30,6 +30,8 @@ public class MainViewModel : INotifyPropertyChanged
     private bool _isPlaying;
     private string _videoInfoText = string.Empty;
     private bool _showDropHint = true;
+    private bool _isBatchMode;
+    private BatchViewModel _batchViewModel = new();
 
     #endregion
 
@@ -48,6 +50,42 @@ public class MainViewModel : INotifyPropertyChanged
         field = value;
         OnPropertyChanged(propertyName);
         return true;
+    }
+
+    #endregion
+
+    #region 页面切换属性
+
+    /// <summary>
+    /// 是否为批量转换模式
+    /// </summary>
+    public bool IsBatchMode
+    {
+        get => _isBatchMode;
+        set
+        {
+            if (SetProperty(ref _isBatchMode, value))
+            {
+                OnPropertyChanged(nameof(IsSingleMode));
+            }
+        }
+    }
+
+    /// <summary>
+    /// 是否为单个转换模式
+    /// </summary>
+    public bool IsSingleMode
+    {
+        get => !_isBatchMode;
+    }
+
+    /// <summary>
+    /// 批量转换 ViewModel
+    /// </summary>
+    public BatchViewModel BatchViewModel
+    {
+        get => _batchViewModel;
+        set => SetProperty(ref _batchViewModel, value);
     }
 
     #endregion
@@ -268,6 +306,16 @@ public class MainViewModel : INotifyPropertyChanged
     #region 命令
 
     /// <summary>
+    /// 切换到单个转换模式命令
+    /// </summary>
+    public ICommand SwitchToSingleModeCommand { get; }
+
+    /// <summary>
+    /// 切换到批量转换模式命令
+    /// </summary>
+    public ICommand SwitchToBatchModeCommand { get; }
+
+    /// <summary>
     /// 打开文件命令
     /// </summary>
     public ICommand OpenFileCommand { get; }
@@ -318,6 +366,10 @@ public class MainViewModel : INotifyPropertyChanged
 
     public MainViewModel()
     {
+        // 页面切换命令
+        SwitchToSingleModeCommand = new RelayCommand(SwitchToSingleMode);
+        SwitchToBatchModeCommand = new RelayCommand(SwitchToBatchMode);
+
         OpenFileCommand = new RelayCommand(OpenFile);
         PlayCommand = new RelayCommand(Play);
         PauseCommand = new RelayCommand(Pause);
@@ -350,6 +402,26 @@ public class MainViewModel : INotifyPropertyChanged
         {
             System.Diagnostics.Debug.WriteLine($"FFmpeg 提取失败: {ex.Message}");
         }
+    }
+
+    #endregion
+
+    #region 页面切换实现
+
+    /// <summary>
+    /// 切换到单个转换模式
+    /// </summary>
+    private void SwitchToSingleMode()
+    {
+        IsBatchMode = false;
+    }
+
+    /// <summary>
+    /// 切换到批量转换模式
+    /// </summary>
+    private void SwitchToBatchMode()
+    {
+        IsBatchMode = true;
     }
 
     #endregion

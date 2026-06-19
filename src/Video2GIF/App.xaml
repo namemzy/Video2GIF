@@ -21,6 +21,9 @@
         <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FF64748B" />
         <SolidColorBrush x:Key="TextTertiaryBrush" Color="#FF94A3B8" />
 
+        <!-- 辅助色 -->
+        <SolidColorBrush x:Key="SecondaryBrush" Color="#FFF1F5F9" />
+
         <!-- 功能色 -->
         <SolidColorBrush x:Key="SuccessBrush" Color="#FF22C55E" />
         <SolidColorBrush x:Key="ErrorBrush" Color="#FFEF4444" />
