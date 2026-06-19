@@ -155,40 +155,41 @@
                             <TextBlock Text="{Binding VideoInfoText}"
                                        FontSize="11"
                                        Foreground="{StaticResource TextTertiaryBrush}" />
-                            <!-- 打开文件 + 时间控制 -->
-                            <StackPanel Margin="0,8,0,0">
-                                <Button Content="打开文件"
+                            <!-- 按钮 + 时间输入 -->
+                            <Grid Margin="0,8,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0"
+                                        Content="打开文件"
                                         Command="{Binding OpenFileCommand}"
                                         Style="{StaticResource SecondaryButton}"
-                                        Padding="12,6" FontSize="12" />
-                                <Grid Margin="0,6,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Button Grid.Column="0"
-                                            Content="设为起点"
-                                            Command="{Binding SetStartTimeCommand}"
-                                            Style="{StaticResource SecondaryButton}"
-                                            Padding="12,6" FontSize="12"
-                                            Margin="0,0,6,0" />
-                                    <TextBox Grid.Column="1"
-                                             Text="{Binding Settings.StartTime, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"
-                                             Style="{StaticResource ModernTextBox}"
-                                             Margin="0,0,12,0" />
-                                    <Button Grid.Column="2"
-                                            Content="设为终点"
-                                            Command="{Binding SetEndTimeCommand}"
-                                            Style="{StaticResource SecondaryButton}"
-                                            Padding="12,6" FontSize="12"
-                                            Margin="0,0,6,0" />
-                                    <TextBox Grid.Column="3"
-                                             Text="{Binding Settings.EndTime, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"
-                                             Style="{StaticResource ModernTextBox}" />
-                                </Grid>
-                            </StackPanel>
+                                        Padding="12,6" FontSize="12"
+                                        Margin="0,0,6,0" />
+                                <Button Grid.Column="1"
+                                        Content="设为起点"
+                                        Command="{Binding SetStartTimeCommand}"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Padding="12,6" FontSize="12"
+                                        Margin="0,0,6,0" />
+                                <TextBox Grid.Column="2"
+                                         Text="{Binding Settings.StartTime, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"
+                                         Style="{StaticResource ModernTextBox}"
+                                         Margin="0,0,10,0" />
+                                <Button Grid.Column="3"
+                                        Content="设为终点"
+                                        Command="{Binding SetEndTimeCommand}"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Padding="12,6" FontSize="12"
+                                        Margin="0,0,6,0" />
+                                <TextBox Grid.Column="4"
+                                         Text="{Binding Settings.EndTime, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"
+                                         Style="{StaticResource ModernTextBox}" />
+                            </Grid>
                         </StackPanel>
                     </Border>
                 </Grid>
