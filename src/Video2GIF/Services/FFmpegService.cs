@@ -45,11 +45,18 @@ public class FFmpegService
 
     /// <summary>
     /// 自动检测 FFmpeg 路径
-    /// 优先从应用程序目录查找，其次从系统 PATH 查找
+    /// 优先级：已下载的 > 应用目录 > 进程目录 > 系统 PATH
     /// </summary>
     /// <returns>FFmpeg 可执行文件路径，未找到返回 null</returns>
     public static string? AutoDetectFFmpegPath()
     {
+        // 0. 检查之前下载的 FFmpeg
+        string? downloadedPath = FFmpegDownloader.GetDownloadedFFmpegPath();
+        if (!string.IsNullOrEmpty(downloadedPath))
+        {
+            return downloadedPath;
+        }
+
         // 1. 从应用程序目录查找
         string appDir = AppDomain.CurrentDomain.BaseDirectory;
         string bundledPath = Path.Combine(appDir, "ffmpeg.exe");
@@ -58,7 +65,7 @@ public class FFmpegService
             return bundledPath;
         }
 
-        // 2. 从当前进程目录查找（适用于单文件应用提取目录）
+        // 2. 从当前进程目录查找
         string? processDir = Path.GetDirectoryName(Environment.ProcessPath);
         if (!string.IsNullOrEmpty(processDir))
         {

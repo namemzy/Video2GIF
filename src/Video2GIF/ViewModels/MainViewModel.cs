@@ -348,17 +348,26 @@ public class MainViewModel : INotifyPropertyChanged
         };
 
         // 自动检测 FFmpeg 路径（带异常处理）
+        // 优先级：已下载的 > 同目录 > 进程目录 > 系统 PATH
         try
         {
-            string? detectedPath = FFmpegService.AutoDetectFFmpegPath();
-            if (!string.IsNullOrEmpty(detectedPath))
+            // 先检查之前下载的 FFmpeg
+            string? downloadedPath = FFmpegDownloader.GetDownloadedFFmpegPath();
+            if (!string.IsNullOrEmpty(downloadedPath))
             {
-                Settings.FFmpegPath = detectedPath;
+                Settings.FFmpegPath = downloadedPath;
+            }
+            else
+            {
+                string? detectedPath = FFmpegService.AutoDetectFFmpegPath();
+                if (!string.IsNullOrEmpty(detectedPath))
+                {
+                    Settings.FFmpegPath = detectedPath;
+                }
             }
         }
         catch (Exception ex)
         {
-            // FFmpeg 自动检测失败不影响应用启动
             System.Diagnostics.Debug.WriteLine($"FFmpeg 自动检测失败: {ex.Message}");
         }
     }
@@ -476,11 +485,52 @@ public class MainViewModel : INotifyPropertyChanged
     /// </summary>
     private async Task ConvertAsync()
     {
-        // 验证 FFmpeg 路径
+        // 验证 FFmpeg 路径，如果未找到则尝试下载
         if (string.IsNullOrWhiteSpace(Settings.FFmpegPath) || !File.Exists(Settings.FFmpegPath))
         {
-            MessageBox.Show("请先设置有效的 FFmpeg 路径！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
+            var result = MessageBox.Show(
+                "未找到 FFmpeg，是否自动下载？\n\n下载大小约 30MB，仅需下载一次。",
+                "需要 FFmpeg",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    IsConverting = true;
+                    ConvertStatusText = "正在下载 FFmpeg...";
+                    ConvertProgress = 0;
+
+                    string ffmpegPath = await FFmpegDownloader.DownloadAsync(
+                        (progress, status) =>
+                        {
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                ConvertProgress = progress;
+                                ConvertStatusText = string.Format("下载 FFmpeg: {0}", status);
+                            });
+                        });
+
+                    Settings.FFmpegPath = ffmpegPath;
+                    ConvertStatusText = "FFmpeg 下载完成，准备转换...";
+                    ConvertProgress = 0;
+                }
+                catch (Exception ex)
+                {
+                    ConvertStatusText = "下载失败";
+                    ConvertProgress = 0;
+                    MessageBox.Show(
+                        string.Format("FFmpeg 下载失败：{0}\n\n请手动下载 FFmpeg 并在设置中指定路径。", ex.Message),
+                        "下载失败", MessageBoxButton.OK, MessageBoxImage.Error);
+                    IsConverting = false;
+                    return;
+                }
+            }
+            else
+            {
+                return;
+            }
         }
 
         // 验证输出路径
