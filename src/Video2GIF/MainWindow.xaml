@@ -205,29 +205,6 @@
                                    Foreground="{StaticResource TextPrimaryBrush}"
                                    Margin="0,0,0,16" />
 
-                        <!-- FFmpeg 路径 -->
-                        <StackPanel Margin="0,0,0,16">
-                            <TextBlock Text="FFmpeg 路径" Style="{StaticResource FieldLabel}" />
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBox Grid.Column="0"
-                                         Text="{Binding Settings.FFmpegPath, UpdateSourceTrigger=PropertyChanged}"
-                                         Style="{StaticResource ModernTextBox}"
-                                         Margin="0,0,8,0" />
-                                <Button Grid.Column="1"
-                                        Content="浏览"
-                                        Command="{Binding SelectFFmpegPathCommand}"
-                                        Style="{StaticResource SecondaryButton}"
-                                        Padding="10,8" FontSize="12" />
-                            </Grid>
-                        </StackPanel>
-
-                        <!-- 分隔线 -->
-                        <Border Height="1" Background="{StaticResource BorderBrush}" Margin="0,0,0,16" />
-
                         <!-- 输出分辨率 -->
                         <StackPanel Margin="0,0,0,16">
                             <TextBlock Text="输出分辨率" Style="{StaticResource FieldLabel}" />

@@ -298,11 +298,6 @@ public class MainViewModel : INotifyPropertyChanged
     public ICommand SetEndTimeCommand { get; }
 
     /// <summary>
-    /// 选择 FFmpeg 路径命令
-    /// </summary>
-    public ICommand SelectFFmpegPathCommand { get; }
-
-    /// <summary>
     /// 选择输出路径命令
     /// </summary>
     public ICommand SelectOutputPathCommand { get; }
@@ -329,7 +324,6 @@ public class MainViewModel : INotifyPropertyChanged
         StopCommand = new RelayCommand(Stop);
         SetStartTimeCommand = new RelayCommand(SetStartTime);
         SetEndTimeCommand = new RelayCommand(SetEndTime);
-        SelectFFmpegPathCommand = new RelayCommand(SelectFFmpegPath);
         SelectOutputPathCommand = new RelayCommand(SelectOutputPath);
         ConvertCommand = new AsyncRelayCommand(ConvertAsync, () => CanConvert);
         CancelConvertCommand = new RelayCommand(CancelConvert);
@@ -347,28 +341,14 @@ public class MainViewModel : INotifyPropertyChanged
             }
         };
 
-        // 自动检测 FFmpeg 路径（带异常处理）
-        // 优先级：已下载的 > 同目录 > 进程目录 > 系统 PATH
+        // 从内嵌资源提取 FFmpeg
         try
         {
-            // 先检查之前下载的 FFmpeg
-            string? downloadedPath = FFmpegDownloader.GetDownloadedFFmpegPath();
-            if (!string.IsNullOrEmpty(downloadedPath))
-            {
-                Settings.FFmpegPath = downloadedPath;
-            }
-            else
-            {
-                string? detectedPath = FFmpegService.AutoDetectFFmpegPath();
-                if (!string.IsNullOrEmpty(detectedPath))
-                {
-                    Settings.FFmpegPath = detectedPath;
-                }
-            }
+            Settings.FFmpegPath = FFmpegExtractor.GetFFmpegPath();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"FFmpeg 自动检测失败: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"FFmpeg 提取失败: {ex.Message}");
         }
     }
 
@@ -444,24 +424,6 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// 选择 FFmpeg 路径
-    /// </summary>
-    private void SelectFFmpegPath()
-    {
-        var dialog = new OpenFileDialog
-        {
-            Title = "选择 FFmpeg 可执行文件",
-            Filter = "FFmpeg (ffmpeg.exe)|ffmpeg.exe|所有文件 (*.*)|*.*",
-            FilterIndex = 1
-        };
-
-        if (dialog.ShowDialog() == true)
-        {
-            Settings.FFmpegPath = dialog.FileName;
-        }
-    }
-
-    /// <summary>
     /// 选择输出路径
     /// </summary>
     private void SelectOutputPath()
@@ -485,50 +447,18 @@ public class MainViewModel : INotifyPropertyChanged
     /// </summary>
     private async Task ConvertAsync()
     {
-        // 验证 FFmpeg 路径，如果未找到则尝试下载
+        // 确保 FFmpeg 已提取
         if (string.IsNullOrWhiteSpace(Settings.FFmpegPath) || !File.Exists(Settings.FFmpegPath))
         {
-            var result = MessageBox.Show(
-                "未找到 FFmpeg，是否自动下载？\n\n下载大小约 30MB，仅需下载一次。",
-                "需要 FFmpeg",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-
-            if (result == MessageBoxResult.Yes)
+            try
             {
-                try
-                {
-                    IsConverting = true;
-                    ConvertStatusText = "正在下载 FFmpeg...";
-                    ConvertProgress = 0;
-
-                    string ffmpegPath = await FFmpegDownloader.DownloadAsync(
-                        (progress, status) =>
-                        {
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                ConvertProgress = progress;
-                                ConvertStatusText = string.Format("下载 FFmpeg: {0}", status);
-                            });
-                        });
-
-                    Settings.FFmpegPath = ffmpegPath;
-                    ConvertStatusText = "FFmpeg 下载完成，准备转换...";
-                    ConvertProgress = 0;
-                }
-                catch (Exception ex)
-                {
-                    ConvertStatusText = "下载失败";
-                    ConvertProgress = 0;
-                    MessageBox.Show(
-                        string.Format("FFmpeg 下载失败：{0}\n\n请手动下载 FFmpeg 并在设置中指定路径。", ex.Message),
-                        "下载失败", MessageBoxButton.OK, MessageBoxImage.Error);
-                    IsConverting = false;
-                    return;
-                }
+                Settings.FFmpegPath = FFmpegExtractor.GetFFmpegPath();
             }
-            else
+            catch (Exception ex)
             {
+                MessageBox.Show(
+                    string.Format("FFmpeg 初始化失败：{0}", ex.Message),
+                    "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
         }
@@ -645,36 +575,35 @@ public class MainViewModel : INotifyPropertyChanged
             string fileName = Path.GetFileNameWithoutExtension(filePath);
             Settings.OutputFilePath = Path.Combine(directory, string.Format("{0}.gif", fileName));
 
-            // 读取视频元数据
-            if (!string.IsNullOrWhiteSpace(Settings.FFmpegPath) && File.Exists(Settings.FFmpegPath))
+            // 确保 FFmpeg 已提取
+            if (string.IsNullOrWhiteSpace(Settings.FFmpegPath) || !File.Exists(Settings.FFmpegPath))
             {
-                try
-                {
-                    var ffmpegService = new FFmpegService(Settings.FFmpegPath);
-                    var metadata = await ffmpegService.GetMetadataAsync(filePath);
-
-                    Settings.OutputWidth = metadata.Width;
-                    Settings.OutputHeight = metadata.Height;
-                    Settings.TotalDuration = metadata.Duration;
-                    Settings.EndTime = metadata.Duration;
-                    Settings.AspectRatio = metadata.Width > 0 && metadata.Height > 0
-                        ? (double)metadata.Width / metadata.Height
-                        : 1.0;
-
-                    VideoInfoText = string.Format(
-                        "{0}x{1} | {2:F1}fps | {3}",
-                        metadata.Width, metadata.Height,
-                        metadata.FrameRate,
-                        FormatTime(metadata.Duration));
-                }
-                catch (Exception ex)
-                {
-                    VideoInfoText = string.Format("无法读取视频信息: {0}", ex.Message);
-                }
+                Settings.FFmpegPath = FFmpegExtractor.GetFFmpegPath();
             }
-            else
+
+            // 读取视频元数据
+            try
             {
-                VideoInfoText = "请先设置 FFmpeg 路径以读取视频信息";
+                var ffmpegService = new FFmpegService(Settings.FFmpegPath);
+                var metadata = await ffmpegService.GetMetadataAsync(filePath);
+
+                Settings.OutputWidth = metadata.Width;
+                Settings.OutputHeight = metadata.Height;
+                Settings.TotalDuration = metadata.Duration;
+                Settings.EndTime = metadata.Duration;
+                Settings.AspectRatio = metadata.Width > 0 && metadata.Height > 0
+                    ? (double)metadata.Width / metadata.Height
+                    : 1.0;
+
+                VideoInfoText = string.Format(
+                    "{0}x{1} | {2:F1}fps | {3}",
+                    metadata.Width, metadata.Height,
+                    metadata.FrameRate,
+                    FormatTime(metadata.Duration));
+            }
+            catch (Exception ex)
+            {
+                VideoInfoText = string.Format("无法读取视频信息: {0}", ex.Message);
             }
 
             DurationText = FormatTime(Settings.TotalDuration);

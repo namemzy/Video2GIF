@@ -8,7 +8,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Video2GIF</AssemblyName>
     <RootNamespace>Video2GIF</RootNamespace>
-    <!-- BundleFFmpeg: false=不打包, lite=精简版(131MB), true/full=完整版(195MB) -->
+    <!-- BundleFFmpeg: false=不打包, lite=精简版, true/full=完整版 -->
     <BundleFFmpeg Condition="'$(BundleFFmpeg)' == ''">lite</BundleFFmpeg>
   </PropertyGroup>
 
@@ -16,19 +16,18 @@
     <PackageReference Include="CliWrap" Version="3.6.6" />
   </ItemGroup>
 
-  <!-- 精简版：打包 ffmpeg-lite.exe（重命名为 ffmpeg.exe） -->
+  <!-- 精简版：内嵌 ffmpeg-lite.exe -->
   <ItemGroup Condition="'$(BundleFFmpeg)' == 'lite'">
-    <Content Include="ffmpeg-lite.exe">
-      <Link>ffmpeg.exe</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <EmbeddedResource Include="ffmpeg-lite.exe">
+      <LogicalName>Video2GIF.Resources.ffmpeg.exe</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
-  <!-- 完整版：打包完整 ffmpeg.exe -->
+  <!-- 完整版：内嵌完整 ffmpeg.exe -->
   <ItemGroup Condition="'$(BundleFFmpeg)' == 'true' Or '$(BundleFFmpeg)' == 'full'">
-    <Content Include="ffmpeg.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <EmbeddedResource Include="ffmpeg.exe">
+      <LogicalName>Video2GIF.Resources.ffmpeg.exe</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
