@@ -467,7 +467,7 @@
 
             <!-- 批量转换页面 -->
             <views:BatchConvertView
-                Visibility="{Binding IsBatchMode, Converter={StaticResource BoolToVisibilityConverter}}"
+                Visibility="{Binding DataContext.IsBatchMode, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVisibilityConverter}}"
                 DataContext="{Binding BatchViewModel}" />
         </Grid>
     </Grid>
