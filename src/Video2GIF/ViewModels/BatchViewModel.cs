@@ -679,6 +679,11 @@ public class BatchViewModel : INotifyPropertyChanged
                     Settings.OutputHeight = metadata.Height;
                 }
 
+                // 更新宽高比，用于锁定宽高比功能
+                Settings.AspectRatio = metadata.Width > 0 && metadata.Height > 0
+                    ? (double)metadata.Width / metadata.Height
+                    : 0.0;
+
                 double totalDuration = metadata.Duration;
 
                 VideoInfoText = string.Format(
