@@ -11,7 +11,7 @@ public class ConvertSettings : INotifyPropertyChanged
     private int _outputWidth = 0;
     private int _outputHeight = 0;
     private bool _lockAspectRatio = false;
-    private double _aspectRatio = 1.0;
+    private double _aspectRatio = 0.0;  // 0 表示未设置，加载视频后自动填充
     private int _frameRate = 10;
     private double _speed = 1.0;
     private double _startTime = 0.0;
