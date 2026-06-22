@@ -209,7 +209,7 @@
                                             x:Name="progressSlider"
                                             Minimum="0"
                                             Maximum="{Binding Settings.TotalDuration}"
-                                            Value="{Binding CurrentPosition, Mode=TwoWay}"
+                                            Value="{Binding CurrentPosition, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                             ValueChanged="ProgressSlider_ValueChanged"
                                             Thumb.DragStarted="ProgressSlider_MouseLeftButtonDown"
                                             Thumb.DragCompleted="ProgressSlider_MouseLeftButtonUp"

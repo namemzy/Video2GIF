@@ -131,12 +131,14 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// 进度条值改变事件（用户拖动时）
+    /// 进度条值改变事件（拖动或点击轨道时均同步 ViewModel）
     /// </summary>
     private void ProgressSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (DataContext is MainViewModel viewModel && _isDraggingSlider)
+        if (DataContext is MainViewModel viewModel)
         {
+            // 同步 CurrentPosition 与 PositionText；UpdatePosition 内部使用 SetProperty，
+            // 未发生变化时不会触发冗余通知，因此不会与定时器产生循环更新。
             viewModel.UpdatePosition(e.NewValue);
         }
     }

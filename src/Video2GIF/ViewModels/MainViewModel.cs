@@ -492,7 +492,12 @@ public class MainViewModel : INotifyPropertyChanged
     /// </summary>
     private void SetEndTime()
     {
-        Settings.EndTime = Math.Max(CurrentPosition, Settings.StartTime);
+        // 当前位置为 0 时，认为用户想截取到视频结尾，避免 EndTime=0 被当作“未设置”
+        // 当前位置大于 0 时，确保终点不会小于起点
+        double endTime = CurrentPosition <= 0
+            ? Settings.TotalDuration
+            : Math.Max(CurrentPosition, Settings.StartTime);
+        Settings.EndTime = endTime;
     }
 
     /// <summary>
