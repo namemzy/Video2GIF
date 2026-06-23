@@ -228,13 +228,15 @@ public class FFmpegService
             // ---- 第一步：生成调色板 ----
             string paletteVf = string.Format("{0},palettegen=stats_mode={1}", baseFilter, paletteStatsMode);
 
+            // -t 放在 -i 之后（输入端），限制读取的原视频时长，
+            // 不受 setpts 速度滤镜影响时间轴映射
             var paletteArgs = new[]
             {
                 "-y",
                 "-ss", startTime.ToString("F3", CultureInfo.InvariantCulture),
+                "-t", duration.ToString("F3", CultureInfo.InvariantCulture),
                 "-i", inputPath,
                 "-vf", paletteVf,
-                "-t", duration.ToString("F3", CultureInfo.InvariantCulture),
                 "-update", "1",
                 tempPalette
             };
@@ -257,14 +259,16 @@ public class FFmpegService
             // ---- 第二步：使用调色板编码 GIF ----
             string gifVf = string.Format("{0}[x];[x][1:v]paletteuse=dither={1}", baseFilter, ditherAlgorithm);
 
+            // 同样将 -t 放在输入端，限制读取原视频时长
+            // 第二个输入（调色板）不受 -t 影响
             var gifArgs = new[]
             {
                 "-y",
                 "-ss", startTime.ToString("F3", CultureInfo.InvariantCulture),
+                "-t", duration.ToString("F3", CultureInfo.InvariantCulture),
                 "-i", inputPath,
                 "-i", tempPalette,
                 "-lavfi", gifVf,
-                "-t", duration.ToString("F3", CultureInfo.InvariantCulture),
                 "-loop", "0",
                 outputPath
             };
@@ -288,7 +292,9 @@ public class FFmpegService
                     if (timeMatch.Success && duration > 0)
                     {
                         double currentTime = ParseTimeSpan(timeMatch.Groups[1].Value).TotalSeconds;
-                        double progress = Math.Min(99.0, 30.0 + (currentTime / duration) * 69.0);
+                        // 输出时间轴已受 setpts 影响，实际输出时长 = duration / speed
+                        double outputDuration = speed > 0 ? duration / speed : duration;
+                        double progress = Math.Min(99.0, 30.0 + (currentTime / outputDuration) * 69.0);
                         if (progress > lastProgress)
                         {
                             lastProgress = progress;

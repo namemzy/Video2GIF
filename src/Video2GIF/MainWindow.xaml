@@ -263,7 +263,7 @@
                                                 Padding="12,6" FontSize="12"
                                                 Margin="0,0,6,0" />
                                         <TextBox Grid.Column="2"
-                                                 Text="{Binding Settings.StartTime, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"
+                                                 Text="{Binding Settings.StartTime, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
                                                  Style="{StaticResource ModernTextBox}"
                                                  Margin="0,0,10,0" />
                                         <Button Grid.Column="3"
@@ -273,7 +273,7 @@
                                                 Padding="12,6" FontSize="12"
                                                 Margin="0,0,6,0" />
                                         <TextBox Grid.Column="4"
-                                                 Text="{Binding Settings.EndTime, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"
+                                                 Text="{Binding Settings.EndTime, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
                                                  Style="{StaticResource ModernTextBox}" />
                                     </Grid>
                                 </StackPanel>
